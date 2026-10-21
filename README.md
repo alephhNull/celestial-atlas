@@ -21,7 +21,9 @@ You can paste it anywhere; for a post with a real button:
 2. In this repo: **Settings → Secrets and variables → Actions → New repository secret**, name `BOT_TOKEN`,
    value = your bot token from @BotFather.
 3. **Actions → "Post Atlas button to a channel" → Run workflow**, enter your channel (e.g. `@mychannel`).
-   It posts the preview picture with an **Open** button. Run it again any time for a new post.
+   Style `button` posts one short line with an **Open** button; `photo` adds the preview picture.
+   To send it to yourself instead (then forward it to friends), press Start in the bot and enter your
+   numeric Telegram ID. Run it again any time for a new post.
 
 ## Editing the app
 

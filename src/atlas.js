@@ -35,9 +35,9 @@ renderer.domElement.style.touchAction='none';
 stage.appendChild(renderer.domElement);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(49,canvasRoot.clientWidth/canvasRoot.clientHeight,.02,600);
-camera.position.set(12.0,11.5,18.7);
+camera.position.set(12.0,11.5,18.7).setLength(37); // start fully zoomed out (= controls.maxDistance)
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.055;controls.enablePan=false;controls.minDistance=8;controls.maxDistance=37;controls.maxPolarAngle=Math.PI-.16;controls.minPolarAngle=.13;controls.target.set(0,0,0);controls.update();
-const orbitCamSaved=new THREE.Vector3(12,11.5,18.7);
+const orbitCamSaved=new THREE.Vector3(12,11.5,18.7).setLength(37);
 const orbitFrame=new THREE.Group(), earthSkyFrame=new THREE.Group();scene.add(orbitFrame,earthSkyFrame);orbitFrame.scale.z=earthSkyFrame.scale.z=-1;
 const eclipticGroup=new THREE.Group(), guidesGroup=new THREE.Group();orbitFrame.add(eclipticGroup,guidesGroup);
 const skyGuides=new THREE.Group();earthSkyFrame.add(skyGuides);
@@ -51,7 +51,7 @@ function line(points,color,opacity=.5,dashed=false){let g=new THREE.BufferGeomet
 function ring(r,color,opacity=.5,linewidth=1){return line(circlePoints(r),color,opacity)}
 function sectorArc(r,a0,a1,segments=40){let pts=[];for(let i=0;i<=segments;i++){let a=a0+(a1-a0)*i/segments;pts.push(new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r))}return pts}
 function vecAt(r,a,latitude=0){return new THREE.Vector3(r*Math.cos(latitude)*Math.cos(a),r*Math.sin(latitude),r*Math.cos(latitude)*Math.sin(a))}
-function spriteText(text,opt={}){let c=document.createElement('canvas');c.width=1024;c.height=160;let ctx=c.getContext('2d');let serif=opt.serif??true;ctx.font=(serif?'500 72px Georgia,serif':'700 50px Arial,sans-serif');ctx.fillStyle=opt.color||'#d4d6d6';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=opt.shadow||'rgba(0,0,0,.95)';ctx.shadowBlur=15;ctx.fillText(text,512,78);let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;let s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:opt.opacity??.95}));let w=opt.width||2.4;s.scale.set(w,w*160/1024,1);return s}
+function spriteText(text,opt={}){let c=document.createElement('canvas');c.width=1024;c.height=160;let ctx=c.getContext('2d');let serif=opt.serif??true;ctx.font=(serif?`500 ${opt.size||72}px Georgia,serif`:`700 ${opt.size||50}px Arial,sans-serif`);ctx.fillStyle=opt.color||'#d4d6d6';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=opt.shadow||'rgba(0,0,0,.95)';ctx.shadowBlur=15;ctx.fillText(text,512,78);let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;let s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:opt.opacity??.95}));let w=opt.width||2.4;s.scale.set(w,w*160/1024,1);return s}
 function deterministic(seed){return function(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}}
 function stars(radius,n,seed,size,alpha,nearEquator=false){let rng=deterministic(seed),positions=[],colors=[];for(let i=0;i<n;i++){let az=rng()*TAU;let elevation=nearEquator?(rng()-.5)*.64:Math.asin(2*rng()-1);let r=radius+(rng()-.5)*.65;positions.push(r*Math.cos(elevation)*Math.cos(az),r*Math.sin(elevation),r*Math.cos(elevation)*Math.sin(az));let bright=.5+.5*Math.pow(rng(),6);let choice=rng();let col=choice<.11?[.94,.75,.52]:choice<.42?[.66,.84,.94]:[.81,.88,.98];colors.push(col[0]*bright,col[1]*bright,col[2]*bright)}let geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return new THREE.Points(geo,new THREE.PointsMaterial({size,vertexColors:true,transparent:true,opacity:alpha,depthWrite:false,sizeAttenuation:true}))}
 // A distant fixed star field appears in both perspectives.
@@ -98,13 +98,13 @@ let sg=new THREE.BufferGeometry().setFromPoints(pts);sg.setAttribute('color',new
 let stars=new THREE.Points(sg,new THREE.PointsMaterial({size:far?1.9:.17,map:dotTex,vertexColors:true,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));
 let art=artMesh(c,r+(far?.6:.01),zodiac?0xf3c27e:0x9fc4e2);
 let ctr=c.stars.reduce((a,s)=>a.add(skyVec(1,s)),new THREE.Vector3()).normalize(),low=Math.min(...c.stars.map(s=>s[1]));
-let label=zodiac?spriteText(signs[c.sign].toUpperCase(),{serif:true,width:far?22:2.2,color:'#ead9bb'}):spriteText(c.name.toUpperCase(),{serif:false,width:far?15:1.6,color:'#adc0cf',opacity:.7});
+let label=zodiac?spriteText(signs[c.sign].toUpperCase(),{serif:true,size:84,width:far?32:3.4,color:'#f6e6c6'}):spriteText(c.name.toUpperCase(),{serif:false,size:92,width:far?22:2.5,color:'#d2deea',opacity:.88});
 label.position.copy(vecAt(r,Math.atan2(ctr.z,ctr.x),Math.max(-85,low-(far?5:6))*DEG));
 g.add(art,lines,stars,...halos,label);g.userData={lines,stars,halos,label,art,k:0};(far?earthSkyFrame:orbitFrame).add(g);if(zodiac)(far?zodiacFar:zodiacOrbit)[c.sign]=g})}
 makeSky(SR-.08,false);makeSky(FAR_R+.15,true);
 for(let i=0;i<12;i++)orbitFrame.add(line([vecAt(SR-.15,i*30*DEG),vecAt(SR+.22,i*30*DEG)],0xdeb984,.31)); // sign sector dividers
 // Blend each zodiac figure toward focused (k=1) or resting (k=0).
-function applyFocus(groups,sign,delta){groups.forEach((g,i)=>{let u=g.userData;u.k+=((i===sign?1:0)-u.k)*Math.min(1,delta*6);let k=u.k;u.art.material.opacity=.1+.62*k;u.lines.material.opacity=.3+.55*k;u.stars.material.opacity=.7+.3*k;u.halos.forEach(h=>h.material.opacity=.25+.5*k);u.label.material.opacity=.5+.5*k})}
+function applyFocus(groups,sign,delta){groups.forEach((g,i)=>{let u=g.userData;u.k+=((i===sign?1:0)-u.k)*Math.min(1,delta*6);let k=u.k;u.art.material.opacity=.1+.62*k;u.lines.material.opacity=.3+.55*k;u.stars.material.opacity=.7+.3*k;u.halos.forEach(h=>h.material.opacity=.25+.5*k);u.label.material.opacity=.8+.2*k})}
 
 function textureEarth(){let c=document.createElement('canvas');c.width=1024;c.height=512;let x=c.getContext('2d');let sea=x.createLinearGradient(0,0,0,512);sea.addColorStop(0,'#377f9e');sea.addColorStop(.4,'#134668');sea.addColorStop(1,'#1c607c');x.fillStyle=sea;x.fillRect(0,0,1024,512);const polygons=[[[.05,.27],[.15,.2],[.25,.23],[.28,.31],[.22,.39],[.23,.49],[.16,.46],[.13,.39],[.07,.38]],[[.22,.52],[.29,.56],[.34,.67],[.3,.84],[.26,.96],[.22,.83],[.19,.68]],[[.44,.23],[.49,.2],[.56,.29],[.58,.43],[.55,.57],[.49,.62],[.46,.51]],[[.55,.18],[.69,.14],[.83,.19],[.92,.32],[.85,.42],[.75,.36],[.69,.51],[.65,.55],[.61,.38],[.55,.35]],[[.77,.66],[.86,.62],[.9,.75],[.85,.84],[.79,.8]],[[.13,.93],[.23,.91],[.43,.95],[.69,.91],[.86,.93],[.92,.98],[.05,.99]]];polygons.forEach((p,i)=>{x.beginPath();p.forEach(([a,b],j)=>j?x.lineTo(a*1024,b*512):x.moveTo(a*1024,b*512));x.closePath();x.fillStyle=i%2?'#759c76':'#719a82';x.fill();x.strokeStyle='rgba(223,213,160,.23)';x.lineWidth=4;x.stroke()});let r=deterministic(3819);for(let j=0;j<150;j++){let xx=r()*1024,yy=r()*512;x.fillStyle=`rgba(242,248,248,${r()*.14})`;x.fillRect(xx,yy,20+r()*95,1+r()*6)}let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
 const sun=new THREE.Group();orbitFrame.add(sun);let sunCore=new THREE.Mesh(new THREE.SphereGeometry(.68,48,32),new THREE.MeshBasicMaterial({color:0xffe5ae}));sun.add(sunCore);sun.add(halo(sunGlow,5.4,.72),halo(sunGlow,3.2,.82),halo(sunGlow,1.9,1));sun.add(new THREE.PointLight(0xffdfad,18,24,1.5));
@@ -146,7 +146,7 @@ function updateSkyCamera(){let earthA=progress*30*DEG+Math.PI;let ep=new THREE.V
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(mode!=='sky')return;dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(!dragging||mode!=='sky')return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;if(tracking)setTracking(false);lockedYaw+=dx*.004;lockedPitch=Math.max(-1.33,Math.min(1.33,lockedPitch+dy*.0035))});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();setProgress(progress+1/3);setPlaying(false)}else if(e.key==='ArrowLeft'){e.preventDefault();setProgress(progress-1/3);setPlaying(false)}else if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();setPlaying(!playing)}});
 function resize(){let w=canvasRoot.clientWidth,h=canvasRoot.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);frameLayout()}window.addEventListener('resize',resize);
-function tick(now){requestAnimationFrame(tick);let delta=Math.min((now-lastTime)/1000,.08);lastTime=now;if(playing)setProgress(progress+delta*(12/36));if(mode==='orbit'){controls.update()}else{updateSkyCamera()}sunCore.rotation.y+=delta*.015;let sign=Math.floor(progress);applyFocus(zodiacOrbit,sign,delta);applyFocus(zodiacFar,sign,delta);renderer.render(scene,camera)}
+function tick(now){requestAnimationFrame(tick);let delta=Math.max(0,Math.min((now-lastTime)/1000,.08));lastTime=now;if(playing)setProgress(progress+delta*(12/36));if(mode==='orbit'){controls.update()}else{updateSkyCamera()}sunCore.rotation.y+=delta*.015;let sign=Math.floor(progress);applyFocus(zodiacOrbit,sign,delta);applyFocus(zodiacFar,sign,delta);renderer.render(scene,camera)}
 // Telegram Mini App integration; skipped when opened in an ordinary browser.
 // The SDK loads async so the scene can start drawing before it arrives.
 function initTelegram(){
@@ -168,4 +168,4 @@ if(!tg||tg.platform==='unknown')return;
   tg.onEvent('viewportChanged',resize);
 }
 if(window.Telegram?.WebApp)initTelegram();else $('tgSdk')?.addEventListener('load',initTelegram);
-setProgress(0);orbitFrame.visible=true;earthSkyFrame.visible=false;resize();requestAnimationFrame(tick);$('loading').classList.add('hide');
+setProgress(0);setPlaying(true);orbitFrame.visible=true;earthSkyFrame.visible=false;resize();requestAnimationFrame(tick);$('loading').classList.add('hide');

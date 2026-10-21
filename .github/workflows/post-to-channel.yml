@@ -1,21 +1,27 @@
 name: Post Atlas button to a channel
 
-# Run by hand from the Actions tab. Sends one photo post with an "Open" button to your channel.
-# Needs: the bot added as a channel admin, and the bot token saved as the BOT_TOKEN repository secret.
+# Run by hand from the Actions tab. Sends one post with an "Open" button to a channel or chat.
+# Needs: the bot added as a channel admin (or, for a person, that they pressed Start in the bot),
+# and the bot token saved as the BOT_TOKEN repository secret.
 on:
   workflow_dispatch:
     inputs:
       channel:
-        description: Channel username, e.g. @mychannel
+        description: Channel username (e.g. @mychannel) or numeric chat ID
         required: true
-      caption:
-        description: Post text
+      style:
+        description: "button = one short line with the button; photo = preview picture, text and button"
+        type: choice
+        options: [button, photo]
+        default: button
+      text:
+        description: Post text (Telegram needs at least a few characters above a button)
         required: true
-        default: "✨ Watch the Sun travel through the zodiac in 3D. Tap below to open the Celestial Atlas."
+        default: "✨ Celestial Atlas"
       button:
         description: Button text
         required: true
-        default: "✨ Open Celestial Atlas"
+        default: "Open Celestial Atlas"
 
 permissions:
   contents: read
@@ -28,15 +34,24 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL: ${{ inputs.channel }}
-          CAPTION: ${{ inputs.caption }}
+          STYLE: ${{ inputs.style }}
+          TEXT: ${{ inputs.text }}
           BUTTON: ${{ inputs.button }}
           PHOTO: https://alephhnull.github.io/celestial-atlas/preview.jpg
           APP_LINK: https://t.me/celestial3datlasbot/atlas
         run: |
           if [ -z "$BOT_TOKEN" ]; then echo "Add the BOT_TOKEN repository secret first."; exit 1; fi
-          jq -n --arg chat "$CHANNEL" --arg cap "$CAPTION" --arg photo "$PHOTO" --arg text "$BUTTON" --arg url "$APP_LINK" \
-            '{chat_id: $chat, photo: $photo, caption: $cap, reply_markup: {inline_keyboard: [[{text: $text, url: $url}]]}}' \
-          | curl -sS --fail-with-body -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto" \
-              -H 'Content-Type: application/json' -d @- -o response.json \
+          keyboard=$(jq -n --arg text "$BUTTON" --arg url "$APP_LINK" '{inline_keyboard: [[{text: $text, url: $url}]]}')
+          if [ "$STYLE" = photo ]; then
+            method=sendPhoto
+            body=$(jq -n --arg chat "$CHANNEL" --arg cap "$TEXT" --arg photo "$PHOTO" --argjson kb "$keyboard" \
+              '{chat_id: $chat, photo: $photo, caption: $cap, reply_markup: $kb}')
+          else
+            method=sendMessage
+            body=$(jq -n --arg chat "$CHANNEL" --arg text "$TEXT" --argjson kb "$keyboard" \
+              '{chat_id: $chat, text: $text, link_preview_options: {is_disabled: true}, reply_markup: $kb}')
+          fi
+          curl -sS --fail-with-body -X POST "https://api.telegram.org/bot${BOT_TOKEN}/${method}" \
+            -H 'Content-Type: application/json' -d "$body" -o response.json \
           || { cat response.json; exit 1; }
           jq '{ok, message_id: .result.message_id}' response.json
