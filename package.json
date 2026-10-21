@@ -1,0 +1,12 @@
+{
+  "name": "celestial-atlas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/atlas.js --bundle --minify --format=esm --target=es2020 --outfile=site/atlas.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10",
+    "three": "0.180.0"
+  }
+}

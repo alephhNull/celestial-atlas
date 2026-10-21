@@ -10,6 +10,15 @@ Hosted for free on GitHub Pages; no bot server needed.
 3. The workflow in `.github/workflows/pages.yml` deploys `site/` on every push.
    Your URL will be `https://<your-username>.github.io/celestial-atlas/`.
 
+## Editing the app
+
+- Page layout and styles: `site/index.html`
+- 3D scene and app logic: `src/atlas.js`
+
+`src/atlas.js` is bundled with Three.js into one minified `site/atlas.js`. The deploy workflow does this
+automatically. To preview locally: `npm install && npm run build`, then serve `site/` (for example
+`npx serve site`).
+
 ## 2. Hook it up to a Telegram bot (all in @BotFather, no code)
 
 1. `/newbot` → pick a name and username.
