@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#070d15" />
+<title>Celestial Atlas — The Sun's Apparent Journey</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+:root{--bg:#060c14;--ink:#eeeae1;--muted:#8f9ca8;--gold:#d6b57c;--ice:#8dbdc9;--hair:rgba(203,215,226,.13);--glass:rgba(9,17,27,.82)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+#atlas{position:relative;height:100dvh;min-height:590px;width:100%;isolation:isolate;background:radial-gradient(ellipse at 58% 38%,#0c1c2d 0%,#080f1b 39%,#050a11 80%)}
+#stage{position:absolute;inset:0;z-index:0}#stage canvas{display:block;width:100%;height:100%;outline:none}
+#vignette{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 62% 70% at 53% 43%,transparent 18%,rgba(3,8,14,.22) 80%),linear-gradient(90deg,rgba(5,10,17,.55) 0%,transparent 40%,rgba(5,10,17,.1) 100%)}
+.ui{position:absolute;z-index:2;pointer-events:none}.ui>*{pointer-events:auto}
+header{top:33px;left:42px;width:min(410px,41vw)}.overline{color:var(--gold);font-size:10px;letter-spacing:.28em;font-weight:700;text-transform:uppercase;display:flex;align-items:center;gap:12px}.overline:before{content:'';width:26px;height:1px;background:var(--gold);opacity:.75}h1{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.04em;line-height:1.08;margin:15px 0 12px;font-size:clamp(31px,3.25vw,55px)}h1 em{font-weight:400;font-style:italic;color:#d4bb93}.deck{margin:0;color:#acb8c1;font-size:12px;line-height:1.85;max-width:310px;letter-spacing:.014em}
+.topControls{top:34px;right:36px;display:flex;gap:8px;align-items:center}.segment{display:flex;gap:3px;border:1px solid rgba(203,215,226,.18);padding:4px;background:rgba(8,15,24,.83);backdrop-filter:blur(14px);border-radius:7px}.mode,.quietBtn{border:0;background:transparent;color:#94a4b0;font-size:10px;letter-spacing:.11em;font-weight:700;text-transform:uppercase;padding:11px 15px;border-radius:4px;transition:.2s}.mode.active{background:rgba(213,179,120,.14);color:#e7ca99;box-shadow:inset 0 0 0 1px rgba(213,179,120,.16)}.mode:hover,.quietBtn:hover{color:white}.quietBtn{background:rgba(8,15,24,.83);border:1px solid rgba(203,215,226,.18);padding:14px 13px}
+#readout{right:36px;top:133px;width:264px;padding:21px 22px 19px;border:1px solid rgba(207,218,227,.15);background:linear-gradient(145deg,rgba(14,25,36,.82),rgba(7,13,21,.83));box-shadow:0 20px 80px rgba(0,0,0,.19);backdrop-filter:blur(16px);border-radius:5px}.infoKicker{color:#aeb8bd;font-size:9px;letter-spacing:.22em;font-weight:700;text-transform:uppercase}.infoKicker .smallDot{display:inline-block;width:5px;height:5px;border-radius:100%;background:var(--gold);margin-right:9px;vertical-align:1px;box-shadow:0 0 9px var(--gold)}#signName{font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:400;letter-spacing:-.03em;margin:8px 0 0}#signDates{color:var(--gold);font-size:11px;letter-spacing:.065em;margin:5px 0 20px}.thinRule{height:1px;background:var(--hair);margin:0 0 17px}.microGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.microLabel{font-size:9px;color:#7f95a5;letter-spacing:.16em;text-transform:uppercase}.microValue{font-size:13px;color:#e3e4dd;margin-top:6px;font-variant-numeric:tabular-nums}#interpretation{font-size:11px;color:#acbac4;line-height:1.75;margin:18px 0 0;min-height:65px}
+#legend{left:42px;bottom:173px;display:flex;gap:22px;align-items:center;opacity:.88}.legendItem{display:flex;gap:9px;align-items:center;font-size:10px;letter-spacing:.02em;color:#acb7bc;white-space:nowrap}.swatch{height:1px;width:25px;background:var(--gold);box-shadow:0 0 7px rgba(214,181,124,.38)}.swatch.blue{background:var(--ice);box-shadow:0 0 7px rgba(141,189,201,.4)}.swatch.dot{height:0;border-top:1px dashed #c2af81;background:transparent}
+#skyTools{right:36px;bottom:183px;display:none;align-items:center;gap:7px;background:rgba(8,15,24,.83);border:1px solid var(--hair);padding:6px;border-radius:5px;backdrop-filter:blur(10px)}#skyTools.active{display:flex}.skyBtn{border:0;border-radius:3px;background:transparent;padding:9px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#91a5b2}.skyBtn.active{background:rgba(214,181,124,.16);color:#edcc92}
+#bottom{position:absolute;bottom:24px;left:36px;right:36px;z-index:3;pointer-events:auto;border:1px solid rgba(196,209,222,.16);background:linear-gradient(170deg,rgba(12,21,32,.9),rgba(8,14,23,.91));box-shadow:0 12px 60px rgba(0,0,0,.22);backdrop-filter:blur(18px);padding:18px 23px 15px;border-radius:6px}.timelineHead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:17px}.timelineTitle{font-size:10px;color:#b3bec5;letter-spacing:.2em;text-transform:uppercase;font-weight:700}.timeRead{font-size:10px;color:#c6a873;letter-spacing:.09em;white-space:nowrap}.months{display:grid;grid-template-columns:repeat(12,1fr);position:relative;gap:0;align-items:center}.month{position:relative;border:0;background:transparent;padding:4px 0 7px;color:#8296a3;font-size:10px;letter-spacing:.07em;font-weight:700;transition:color .2s;text-align:center}.month::before{content:'';display:block;width:5px;height:5px;border:1px solid #657e8e;border-radius:100%;margin:0 auto 10px;background:#09131e;transition:all .2s}.month::after{content:'';position:absolute;left:50%;top:7px;width:100%;height:1px;background:rgba(124,148,162,.25);z-index:-1}.month:last-child::after{display:none}.month.active,.month:hover{color:#e5c187}.month.active:before{background:#e5be80;border-color:#e5be80;box-shadow:0 0 0 4px rgba(225,177,106,.12),0 0 12px rgba(225,177,106,.8)}.timebar{display:flex;align-items:center;gap:14px;margin-top:13px}.play{height:30px;width:30px;display:grid;place-items:center;background:transparent;color:#e5c994;border:1px solid rgba(213,179,120,.34);border-radius:50%;font-size:11px;line-height:1}.play:hover{background:rgba(213,179,120,.12)}#scrubber{width:100%;height:3px;appearance:none;background:linear-gradient(to right,var(--gold) 0%,var(--gold) var(--progress,0%),rgba(131,155,171,.25) var(--progress,0%));cursor:pointer;border-radius:2px;outline:none}#scrubber::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border:2px solid #e6cb97;background:#0d1b28;border-radius:100%;box-shadow:0 0 11px rgba(230,203,151,.4)}#scrubber::-moz-range-thumb{width:10px;height:10px;border:2px solid #e6cb97;background:#0d1b28;border-radius:100%}.speed{font-size:10px;color:#91a2ac;letter-spacing:.04em;white-space:nowrap}.fineprint{font-size:9px;line-height:1.5;color:#71818d;position:absolute;bottom:4px;left:0;right:0;text-align:center;pointer-events:none;z-index:2;letter-spacing:.025em}
+#hint{position:absolute;z-index:2;pointer-events:none;bottom:186px;left:42px;font-size:10px;color:#748895;letter-spacing:.08em}#hint strong{color:#b3c2c9;font-weight:500}#loading{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:#070c14;font-size:13px;letter-spacing:.1em;color:#afbdc6;transition:opacity .6s}#loading.hide{opacity:0;pointer-events:none}.arcMark{position:absolute;top:45%;left:50%;height:1px;width:160px;background:linear-gradient(90deg,transparent,rgba(214,181,124,.7),transparent);opacity:.3;transform:translate(-50%,-50%)}
+@media(max-width:860px){header{left:22px;top:24px;width:270px}h1{font-size:33px}.deck{display:none}.topControls{right:18px;top:24px}.mode{padding:10px}.quietBtn{padding:12px 10px}#readout{top:111px;right:18px;width:210px;padding:16px}#signName{font-size:31px}#interpretation{font-size:10px;margin-top:12px;min-height:0}#legend{left:22px;bottom:167px;gap:10px;flex-direction:column;align-items:flex-start}#skyTools{right:18px;bottom:172px}#bottom{left:15px;right:15px;bottom:25px;padding:13px 11px 12px}.month{font-size:9px}.fineprint{font-size:8px;bottom:4px;padding:0 8px}#hint{display:none}}
+@media(max-width:570px){#fullBtn{display:none}#atlas{min-height:620px}header{top:18px;left:16px;width:175px}.overline{font-size:8px;letter-spacing:.15em}.overline:before{width:12px}h1{font-size:26px;margin-top:10px}.topControls{top:17px;right:11px;gap:4px}.segment{padding:2px}.mode,.quietBtn{font-size:8px;padding:9px 8px}#readout{top:115px;right:11px;width:157px;padding:12px}.infoKicker{font-size:8px}#signName{font-size:27px}#signDates{font-size:9px;margin-bottom:12px}.microGrid{gap:7px}.microLabel{font-size:7px}.microValue{font-size:11px}#interpretation{font-size:9px;line-height:1.5;margin-top:10px}.thinRule{margin-bottom:10px}#legend{bottom:157px;left:17px;gap:8px}.legendItem{font-size:8px}.swatch{width:17px}#skyTools{bottom:158px;right:11px}.skyBtn{padding:8px;font-size:8px}#bottom{bottom:26px;left:9px;right:9px;padding:12px 7px}.timelineHead{margin-bottom:12px}.timelineTitle,.timeRead{font-size:8px}.month{font-size:7px;letter-spacing:0}.month:before{margin-bottom:8px}.timebar{margin-top:10px}.fineprint{font-size:7px}}
+/* Telegram Mini App: fit Telegram's viewport and keep UI clear of its header/safe areas */
+:root{--safe-top:calc(var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));--safe-bottom:calc(var(--tg-safe-area-inset-bottom,0px) + var(--tg-content-safe-area-inset-bottom,0px))}
+#atlas{height:var(--tg-viewport-stable-height,100dvh)}
+header,.topControls,#readout{margin-top:var(--safe-top)}
+#legend,#skyTools,#hint,#bottom,.fineprint{margin-bottom:var(--safe-bottom)}
+body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<main id="atlas" aria-label="Interactive three-dimensional celestial atlas">
+  <div id="stage"></div><div id="vignette"></div>
+  <div id="loading">ASSEMBLING THE CELESTIAL SPHERE<div class="arcMark"></div></div>
+  <header class="ui">
+    <div class="overline">An interactive celestial atlas</div>
+    <h1>As Earth moves,<br><em>the heavens shift.</em></h1>
+    <p class="deck">One orbit. Twelve solar signs. Two ways of seeing the same cosmos.</p>
+  </header>
+  <div class="ui topControls">
+    <div class="segment" role="group" aria-label="Perspective"><button id="orbitMode" class="mode active" aria-pressed="true">Outside view</button><button id="earthMode" class="mode" aria-pressed="false">From Earth</button></div>
+    <button id="guideBtn" class="quietBtn" title="Toggle celestial guides" aria-pressed="true">Guides · On</button><button id="fullBtn" class="quietBtn" title="Toggle fullscreen">Full screen</button>
+  </div>
+  <section id="readout" class="ui" aria-live="polite">
+    <div class="infoKicker"><span class="smallDot"></span>Sun's apparent position</div>
+    <div id="signName">Aries</div>
+    <div id="signDates">MAR 20 — APR 19</div>
+    <div class="thinRule"></div>
+    <div class="microGrid"><div><div class="microLabel">Ecliptic longitude</div><div id="longitude" class="microValue">0.0°</div></div><div><div class="microLabel">Earth's orbit</div><div id="orbitProgress" class="microValue">0%</div></div></div>
+    <p id="interpretation">From Earth, the Sun appears projected toward this part of the celestial sphere.</p>
+  </section>
+  <div id="legend" class="ui" aria-label="Color key"><span class="legendItem"><i class="swatch"></i>Ecliptic / apparent solar path</span><span class="legendItem"><i class="swatch blue"></i>Earth's orbit</span><span class="legendItem"><i class="swatch dot"></i>Line of sight</span></div>
+  <div id="skyTools" class="ui" role="group" aria-label="Earth sky camera"><button id="trackBtn" class="skyBtn active">Follow Sun</button><button id="fixedBtn" class="skyBtn">Fix sky</button></div>
+  <div id="hint"> <strong>Drag</strong> to rotate · <strong>Scroll</strong> to zoom · Select any month</div>
+  <section id="bottom" aria-label="Move through the solar year"><div class="timelineHead"><span class="timelineTitle">Travel through one Earth year</span><span id="timeRead" class="timeRead">MARCH 20 · VERNAL EQUINOX</span></div><div id="months" class="months"></div><div class="timebar"><button id="play" class="play" title="Play or pause the year" aria-label="Play animation">▶</button><input id="scrubber" type="range" min="0" max="11.999" step="0.005" value="0" aria-label="Solar year position"/><span class="speed">1 year / 36 sec</span></div></section>
+  <div class="fineprint">Conceptual scale. The firmament is a sky-coordinate sphere, not a physical shell. Zodiac signs are equal 30° sectors; actual constellation boundaries differ.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const $=id=>document.getElementById(id);
+const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const months=['MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB'];
+const monthNames=['March','April','May','June','July','August','September','October','November','December','January','February'];
+const nextMonth=['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+const endDays=[19,19,20,22,22,22,22,22,21,19,18,19];
+const details=[
+'On the March equinox, the Sun crosses the celestial equator. Earth is on the opposite side of the orbit.',
+'As Earth advances, our view toward the Sun rotates toward the next 30° region of the sky.',
+'From Earth, the Sun now appears against the Gemini sector of the distant celestial sphere.',
+'Near the June solstice, Earth’s tilted axis gives the Northern Hemisphere its longest daylight.',
+'Earth continues counterclockwise in the orbital view; the Sun appears to advance through Leo.',
+'The solar direction is now projected through the Virgo sector of the ecliptic.',
+'The September equinox marks the Sun crossing the celestial equator in the other direction.',
+'The apparent solar position has moved halfway around the sky since March.',
+'The Sun appears in Sagittarius; Earth is still the body moving around the Sun.',
+'Near the December solstice, the Sun reaches its southernmost declination.',
+'In this frame, the Sun appears in Aquarius while Earth occupies the opposite orbital direction.',
+'By Pisces, Earth has nearly completed a revolution, restoring the same sky geometry.'
+];
+const DEG=Math.PI/180, TAU=2*Math.PI, OR=5.05, SR=12.25, FAR_R=135;
+const stage=$('stage'), canvasRoot=$('atlas');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(canvasRoot.clientWidth,canvasRoot.clientHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.22;
+renderer.setClearColor(0x050a11,0);
+renderer.domElement.style.touchAction='none';
+stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(49,canvasRoot.clientWidth/canvasRoot.clientHeight,.02,600);
+camera.position.set(12.0,11.5,18.7);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.055;controls.enablePan=false;controls.minDistance=8;controls.maxDistance=37;controls.maxPolarAngle=Math.PI-.16;controls.minPolarAngle=.13;controls.target.set(0,0,0);controls.update();
+const orbitCamSaved=new THREE.Vector3(12,11.5,18.7);
+const orbitFrame=new THREE.Group(), earthSkyFrame=new THREE.Group();scene.add(orbitFrame,earthSkyFrame);
+const eclipticGroup=new THREE.Group(), guidesGroup=new THREE.Group();orbitFrame.add(eclipticGroup,guidesGroup);
+const skyGuides=new THREE.Group();earthSkyFrame.add(skyGuides);
+const glowCanvas=(inner,mid,outer)=>{let c=document.createElement('canvas');c.width=c.height=256;let ctx=c.getContext('2d');let g=ctx.createRadialGradient(128,128,2,128,128,128);g.addColorStop(0,inner);g.addColorStop(.13,mid);g.addColorStop(1,outer);ctx.fillStyle=g;ctx.fillRect(0,0,256,256);let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t};
+const sunGlow=glowCanvas('rgba(255,248,213,1)','rgba(240,163,77,.28)','rgba(240,122,45,0)');
+const blueGlow=glowCanvas('rgba(179,235,255,.87)','rgba(78,160,203,.14)','rgba(20,60,100,0)');
+const goldGlow=glowCanvas('rgba(255,235,175,.95)','rgba(255,189,94,.22)','rgba(255,170,60,0)');
+function halo(tex,size,opacity=1){let sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false}));sprite.scale.set(size,size,1);return sprite}
+function circlePoints(r,y=0,segments=256){let ar=[];for(let i=0;i<=segments;i++){let a=i/segments*TAU;ar.push(new THREE.Vector3(r*Math.cos(a),y,r*Math.sin(a)))}return ar}
+function line(points,color,opacity=.5,dashed=false){let g=new THREE.BufferGeometry().setFromPoints(points),m=dashed?new THREE.LineDashedMaterial({color,transparent:true,opacity,dashSize:.16,gapSize:.12,depthWrite:false}):new THREE.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false});let obj=new THREE.Line(g,m);if(dashed)obj.computeLineDistances();return obj}
+function ring(r,color,opacity=.5,linewidth=1){return line(circlePoints(r),color,opacity)}
+function sectorArc(r,a0,a1,segments=40){let pts=[];for(let i=0;i<=segments;i++){let a=a0+(a1-a0)*i/segments;pts.push(new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r))}return pts}
+function vecAt(r,a,latitude=0){return new THREE.Vector3(r*Math.cos(latitude)*Math.cos(a),r*Math.sin(latitude),r*Math.cos(latitude)*Math.sin(a))}
+function spriteText(text,opt={}){let c=document.createElement('canvas');c.width=1024;c.height=160;let ctx=c.getContext('2d');let serif=opt.serif??true;ctx.font=(serif?'500 72px Georgia,serif':'700 50px Arial,sans-serif');ctx.fillStyle=opt.color||'#d4d6d6';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=opt.shadow||'rgba(0,0,0,.95)';ctx.shadowBlur=15;ctx.fillText(text,512,78);let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;let s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:opt.opacity??.95}));let w=opt.width||2.4;s.scale.set(w,w*160/1024,1);return s}
+function deterministic(seed){return function(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}}
+function stars(radius,n,seed,size,alpha,nearEquator=false){let rng=deterministic(seed),positions=[],colors=[];for(let i=0;i<n;i++){let az=rng()*TAU;let elevation=nearEquator?(rng()-.5)*.64:Math.asin(2*rng()-1);let r=radius+(rng()-.5)*.65;positions.push(r*Math.cos(elevation)*Math.cos(az),r*Math.sin(elevation),r*Math.cos(elevation)*Math.sin(az));let bright=.5+.5*Math.pow(rng(),6);let choice=rng();let col=choice<.11?[.94,.75,.52]:choice<.42?[.66,.84,.94]:[.81,.88,.98];colors.push(col[0]*bright,col[1]*bright,col[2]*bright)}let geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return new THREE.Points(geo,new THREE.PointsMaterial({size,vertexColors:true,transparent:true,opacity:alpha,depthWrite:false,sizeAttenuation:true}))}
+// A distant fixed star field appears in both perspectives.
+scene.add(stars(192,2500,92701,1.45,.82),stars(165,1300,23811,.9,.47));
+orbitFrame.add(stars(12.45,1400,7282,.055,.78),stars(12.47,590,73917,.095,.71,true));
+earthSkyFrame.add(stars(137,2200,7282,.84,.71),stars(139,580,73917,1.13,.8,true));
+
+// Conceptual celestial sphere (the firmament) and faint coordinate grid.
+let dome=new THREE.Mesh(new THREE.SphereGeometry(SR,64,48),new THREE.MeshBasicMaterial({color:0x23506d,transparent:true,opacity:.029,side:THREE.BackSide,depthWrite:false}));orbitFrame.add(dome);
+const sphereGrid=new THREE.Group();orbitFrame.add(sphereGrid);
+for(let lat of [-60,-30,30,60]){let p=[];for(let i=0;i<=240;i++){let a=i/240*TAU;p.push(vecAt(SR, a,lat*DEG))}sphereGrid.add(line(p,0x47758b,.12))}
+for(let lon=0;lon<360;lon+=30){let p=[];for(let i=0;i<=90;i++){let t=(-90+i*2)*DEG;p.push(vecAt(SR,lon*DEG,t))}sphereGrid.add(line(p,0x47758b,.11))}
+const ecliptic=ring(SR,0xeac591,.76),faintEcliptic=ring(SR+.14,0xc69457,.16);eclipticGroup.add(ecliptic,faintEcliptic);
+const farEcliptic=ring(FAR_R,0xd1ad73,.43);earthSkyFrame.add(farEcliptic);
+const guideEquator=(r)=>{let p=circlePoints(r).map(v=>v.applyAxisAngle(new THREE.Vector3(1,0,0),23.44*DEG));return line(p,0x76aabb,.27)};
+guidesGroup.add(guideEquator(SR-.10));skyGuides.add(guideEquator(FAR_R+.02));
+const orbitRing=ring(OR,0x82c9d9,.68);orbitFrame.add(orbitRing,ring(OR+.065,0x6d91a9,.1));
+const orbitLabel=spriteText('EARTH’S ORBIT',{serif:false,width:2.0,color:'#8ebcca',opacity:.75});orbitLabel.position.set(-.1,-.02,-OR-.51);orbitFrame.add(orbitLabel);
+const firmamentLabel=spriteText('THE FIRMAMENT',{serif:false,width:3.15,color:'#91a8b8',opacity:.72});firmamentLabel.position.set(0,SR+1.2,0);orbitFrame.add(firmamentLabel);
+
+// Zodiac patterns: simplified connected-star drawings, one per conventional sign sector.
+const patterns=[
+[[-.85,-.55],[-.4,.24],[.18,.05],[.76,.55]], // Aries
+[[-.82,.69],[-.55,.18],[-.2,-.39],[.2,.04],[.7,.63],[-.2,-.39],[.67,-.72]], // Taurus
+[[-.67,.74],[-.62,.16],[-.6,-.75],[.65,-.75],[.57,.05],[.6,.77],[-.67,.74],[.6,.77]], // Gemini
+[[-.78,-.35],[-.12,.1],[.36,.6],[-.12,.1],[.73,-.42]], // Cancer
+[[-.77,.6],[-.4,.88],[.12,.63],[.23,.13],[-.27,-.27],[-.42,-.8],[.49,-.61],[.75,-.15],[.23,.13]], // Leo
+[[-.69,.62],[-.22,.31],[.34,.62],[.1,-.25],[.75,-.77],[.1,-.25],[-.46,-.58]], // Virgo
+[[-.55,.59],[.48,.59],[.68,-.37],[-.38,-.52],[-.55,.59],[.48,.59],[-.38,-.52]], // Libra
+[[-.81,.7],[-.49,.34],[-.17,.51],[.1,.12],[.2,-.34],[.43,-.73],[.74,-.67],[.83,-.23],[.49,-.12]], // Scorpio
+[[-.74,.46],[-.3,.66],[.03,.33],[.48,.73],[.62,.2],[.12,.07],[.24,-.52],[-.5,-.55],[-.74,.46],[.12,.07]], // Sagittarius
+[[-.76,.52],[-.39,-.07],[.12,-.77],[.56,-.25],[.75,.55],[.12,-.77]], // Capricorn
+[[-.82,.16],[-.44,.53],[-.08,-.05],[.28,.43],[.73,-.21],[.42,-.76]], // Aquarius
+[[-.81,.52],[-.47,.78],[-.23,.41],[-.51,.08],[-.81,.52],[-.23,.41],[.18,-.05],[.44,-.71],[.75,-.51],[.63,-.12],[.44,-.71]] // Pisces
+];
+const zodiacOrbit=[],zodiacFar=[];
+function makeZodiac(r,far=false){let groups=[];signs.forEach((name,i)=>{let g=new THREE.Group();let mid=(i+.5)*30*DEG;let starsOf=patterns[i].map(([x,y])=>vecAt(r,mid+x*14.0*DEG,y*8.2*DEG));
+for(let k=0;k<starsOf.length-1;k++){let seg=line([starsOf[k],starsOf[k+1]],0x86bac9,far?.40:.56);g.add(seg)}
+starsOf.forEach((p,j)=>{let star=new THREE.Mesh(new THREE.SphereGeometry(far?.50:.052,8,8),new THREE.MeshBasicMaterial({color:j%3===0?0xf4d8ac:0xe0f4ff,transparent:true,opacity:.9}));star.position.copy(p);g.add(star);if(j%3===0){let h=halo(j%2?blueGlow:goldGlow,far?5.1:.53,.38);h.position.copy(p);g.add(h)}});
+let label=spriteText(name.toUpperCase(),{serif:true,width:far?23:2.35,color:'#d8d9d7',opacity:.92});label.position.copy(vecAt(r+(far?0:1.05),mid,far?-12*DEG:-.14));g.add(label);let micro=spriteText(months[i]+' — '+nextMonth[i],{serif:false,width:far?14:1.42,color:'#92a7b2',opacity:.66});micro.position.copy(vecAt(r+(far?0:1.10),mid,far?-16*DEG:-.21));g.add(micro);groups.push(g);(far?earthSkyFrame:orbitFrame).add(g);
+if(!far){let divider=line([vecAt(SR-.15,i*30*DEG),vecAt(SR+.22,i*30*DEG)],0xdeb984,.31);g.add(divider)}
+});return groups}
+zodiacOrbit.push(...makeZodiac(SR-.08,false));zodiacFar.push(...makeZodiac(FAR_R+.15,true));
+
+function textureEarth(){let c=document.createElement('canvas');c.width=1024;c.height=512;let x=c.getContext('2d');let sea=x.createLinearGradient(0,0,0,512);sea.addColorStop(0,'#377f9e');sea.addColorStop(.4,'#134668');sea.addColorStop(1,'#1c607c');x.fillStyle=sea;x.fillRect(0,0,1024,512);const polygons=[[[.05,.27],[.15,.2],[.25,.23],[.28,.31],[.22,.39],[.23,.49],[.16,.46],[.13,.39],[.07,.38]],[[.22,.52],[.29,.56],[.34,.67],[.3,.84],[.26,.96],[.22,.83],[.19,.68]],[[.44,.23],[.49,.2],[.56,.29],[.58,.43],[.55,.57],[.49,.62],[.46,.51]],[[.55,.18],[.69,.14],[.83,.19],[.92,.32],[.85,.42],[.75,.36],[.69,.51],[.65,.55],[.61,.38],[.55,.35]],[[.77,.66],[.86,.62],[.9,.75],[.85,.84],[.79,.8]],[[.13,.93],[.23,.91],[.43,.95],[.69,.91],[.86,.93],[.92,.98],[.05,.99]]];polygons.forEach((p,i)=>{x.beginPath();p.forEach(([a,b],j)=>j?x.lineTo(a*1024,b*512):x.moveTo(a*1024,b*512));x.closePath();x.fillStyle=i%2?'#759c76':'#719a82';x.fill();x.strokeStyle='rgba(223,213,160,.23)';x.lineWidth=4;x.stroke()});let r=deterministic(3819);for(let j=0;j<150;j++){let xx=r()*1024,yy=r()*512;x.fillStyle=`rgba(242,248,248,${r()*.14})`;x.fillRect(xx,yy,20+r()*95,1+r()*6)}let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const sun=new THREE.Group();orbitFrame.add(sun);let sunCore=new THREE.Mesh(new THREE.SphereGeometry(.68,48,32),new THREE.MeshBasicMaterial({color:0xffe5ae}));sun.add(sunCore);sun.add(halo(sunGlow,5.4,.72),halo(sunGlow,3.2,.82),halo(sunGlow,1.9,1));sun.add(new THREE.PointLight(0xffdfad,18,24,1.5));
+// Shared solar physical position: orbiting Earth changes the observed solar direction.
+const earth=new THREE.Group();orbitFrame.add(earth);const earthAxis=new THREE.Group();earthAxis.rotation.z=23.44*DEG;earth.add(earthAxis);let earthMesh=new THREE.Mesh(new THREE.SphereGeometry(.34,32,24),new THREE.MeshPhongMaterial({map:textureEarth(),shininess:38,specular:0x80a1bb}));earthAxis.add(earthMesh);earth.add(halo(blueGlow,1.42,.8));let earthAtmos=new THREE.Mesh(new THREE.SphereGeometry(.362,32,24),new THREE.MeshBasicMaterial({color:0x6ec1ef,transparent:true,opacity:.07,depthWrite:false}));earthAxis.add(earthAtmos);scene.add(new THREE.AmbientLight(0x8db9cf,.7));
+const earthLabel=spriteText('EARTH',{serif:false,width:1.32,color:'#e0f4fa'});orbitFrame.add(earthLabel);
+const ghostEarth=[];for(let m of [0,3,6,9]){let a=(m*30+180)*DEG;let pos=new THREE.Vector3(OR*Math.cos(a),0,OR*Math.sin(a));let g=new THREE.Mesh(new THREE.SphereGeometry(.105,12,10),new THREE.MeshBasicMaterial({color:0x76b7c9,transparent:true,opacity:.46}));g.position.copy(pos);orbitFrame.add(g);ghostEarth.push(g)}
+const rayToSun=line([new THREE.Vector3(),new THREE.Vector3()],0xe5c590,.81);orbitFrame.add(rayToSun);
+const rayOut=line([new THREE.Vector3(),new THREE.Vector3()],0xcda976,.69,true);orbitFrame.add(rayOut);
+const endpointHalo=halo(goldGlow,1.6,.9);orbitFrame.add(endpointHalo);
+const endpointCore=new THREE.Mesh(new THREE.SphereGeometry(.065,16,12),new THREE.MeshBasicMaterial({color:0xffe1aa}));orbitFrame.add(endpointCore);
+const farSunMarker=halo(goldGlow,11,.65);earthSkyFrame.add(farSunMarker);
+const farSunDisk=new THREE.Mesh(new THREE.SphereGeometry(1.05,32,24),new THREE.MeshBasicMaterial({color:0xffe4b0}));earthSkyFrame.add(farSunDisk);
+const farSunRim=halo(sunGlow,4.4,.9);earthSkyFrame.add(farSunRim);
+const farSunLabel=spriteText('SUN',{serif:false,width:9.8,color:'#ebc48f',opacity:.96});earthSkyFrame.add(farSunLabel);
+const highlightOrbit=line(sectorArc(SR,(0)*DEG,(30)*DEG,80),0xffdc9e,.97);orbitFrame.add(highlightOrbit);
+const highlightSky=line(sectorArc(FAR_R,0,30*DEG,60),0xffd59a,.9);earthSkyFrame.add(highlightSky);
+function updateLine(ln,a,b){let attr=ln.geometry.attributes.position;attr.setXYZ(0,a.x,a.y,a.z);attr.setXYZ(1,b.x,b.y,b.z);attr.needsUpdate=true;ln.geometry.computeBoundingSphere();if(ln.material.isLineDashedMaterial)ln.computeLineDistances()}
+function updateArc(ln,r,startAngle,span,count){let a=ln.geometry.attributes.position;for(let i=0;i<=count;i++){let p=vecAt(r,startAngle+i/count*span);a.setXYZ(i,p.x,p.y,p.z)}a.needsUpdate=true;ln.geometry.computeBoundingSphere()}
+const eclipticLatitude=0;
+let progress=0,mode='orbit',playing=false,guides=true,tracking=true,lockedYaw=0,lockedPitch=0,yawDelta=0,orbitCameraRestore=orbitCamSaved.clone();let lastTime=performance.now(),transition=null,tgSync=()=>{};
+function frameLayout(){let w=canvasRoot.clientWidth,h=canvasRoot.clientHeight;let scale=Math.max(0,Math.min(1,(w-570)/830));if(mode==='orbit'){controls.target.set(w<700?0:1.15,0,0);controls.update()}camera.fov=w<550?57:49;camera.updateProjectionMatrix()}
+frameLayout();
+const monthButtons=[];months.forEach((m,i)=>{let b=document.createElement('button');b.className='month';b.textContent=m;b.setAttribute('aria-label',monthNames[i]);b.onclick=()=>{setProgress(i);setPlaying(false)};$('months').append(b);monthButtons.push(b)});
+function getDate(p){let month=Math.floor(p),f=p-month,day=20+Math.round(f*30.44);return {month,day:day>30?day-30:day,next:day>30};}
+function setProgress(p){progress=(p%12+12)%12;let lam=progress*30*DEG,earthAngle=lam+Math.PI,earthPos=new THREE.Vector3(OR*Math.cos(earthAngle),0,OR*Math.sin(earthAngle)),skyPoint=vecAt(SR,lam),farPoint=vecAt(FAR_R,lam);earth.position.copy(earthPos);earthLabel.position.copy(earthPos).add(new THREE.Vector3(0,.66,0));earthMesh.rotation.y=progress*.38;
+updateLine(rayToSun,earthPos,new THREE.Vector3(0,0,0));updateLine(rayOut,new THREE.Vector3(0,0,0),skyPoint);endpointHalo.position.copy(skyPoint);endpointCore.position.copy(skyPoint);farSunMarker.position.copy(farPoint);farSunDisk.position.copy(vecAt(FAR_R-2.1,lam));farSunRim.position.copy(vecAt(FAR_R-2.25,lam));farSunLabel.position.copy(vecAt(FAR_R-1,lam,-3.4*DEG));updateArc(highlightOrbit,SR,Math.floor(progress)*30*DEG,30*DEG,80);updateArc(highlightSky,FAR_R,Math.floor(progress)*30*DEG,30*DEG,60);
+let sign=Math.floor(progress),deg=progress*30;$('signName').textContent=signs[sign];$('signDates').textContent=`${months[sign]} 20 — ${nextMonth[sign]} ${endDays[sign]}`;$('longitude').textContent=deg.toFixed(1)+'°';$('orbitProgress').textContent=(progress/12*100).toFixed(1)+'%';$('interpretation').textContent=details[sign];$('scrubber').value=progress;$('scrubber').style.setProperty('--progress',(progress/12*100)+'%');monthButtons.forEach((b,i)=>b.classList.toggle('active',i===sign));let d=getDate(progress);$('timeRead').textContent=`${d.next?monthNames[(d.month+1)%12]:monthNames[d.month]} ${d.day} · ${signs[sign].toUpperCase()}`;
+zodiacOrbit.forEach((g,i)=>{g.children.forEach(child=>{if(child.material && child.material.color){if(child.isLine)child.material.opacity=i===sign?.86:.35;else if(child.isSprite)child.material.opacity=i===sign?.98:.61}})});if(tracking&&mode==='sky')lockedYaw=lam;
+}
+function setPlaying(p){playing=p;$('play').textContent=p?'Ⅱ':'▶';$('play').setAttribute('aria-label',p?'Pause animation':'Play animation')}
+$('play').onclick=()=>setPlaying(!playing);$('scrubber').oninput=e=>{setProgress(Number(e.target.value));setPlaying(false)};
+$('guideBtn').onclick=()=>{guides=!guides;guidesGroup.visible=guides;sphereGrid.visible=guides;skyGuides.visible=guides;rayToSun.visible=guides;rayOut.visible=guides;endpointHalo.visible=guides;endpointCore.visible=guides;orbitLabel.visible=guides;$('guideBtn').textContent=guides?'Guides · On':'Guides · Off';$('guideBtn').setAttribute('aria-pressed',String(guides))};
+function setTracking(value){tracking=value;$('trackBtn').classList.toggle('active',value);$('fixedBtn').classList.toggle('active',!value);if(!value)lockedYaw=progress*30*DEG;if(value)lockedPitch=0}
+$('trackBtn').onclick=()=>setTracking(true);$('fixedBtn').onclick=()=>setTracking(false);
+function setMode(m){if(mode===m)return;if(mode==='orbit')orbitCameraRestore.copy(camera.position);mode=m;orbitFrame.visible=m==='orbit';earthSkyFrame.visible=m==='sky';controls.enabled=m==='orbit';$('orbitMode').classList.toggle('active',m==='orbit');$('earthMode').classList.toggle('active',m==='sky');$('orbitMode').setAttribute('aria-pressed',String(m==='orbit'));$('earthMode').setAttribute('aria-pressed',String(m==='sky'));$('skyTools').classList.toggle('active',m==='sky');$('legend').style.display=m==='orbit'?'flex':'none';$('hint').innerHTML=m==='orbit'?'<strong>Drag</strong> to rotate · <strong>Scroll</strong> to zoom · Select any month':'<strong>Drag</strong> to look around · <strong>Follow Sun</strong> or <strong>Fix sky</strong>';if(m==='sky'){setTracking(true)}else {camera.position.copy(orbitCameraRestore);camera.lookAt(0,0,0);controls.target.set(0,0,0);controls.update()}frameLayout();tgSync()}
+$('orbitMode').onclick=()=>setMode('orbit');$('earthMode').onclick=()=>setMode('sky');
+$('fullBtn').onclick=()=>{if(!document.fullscreenElement)canvasRoot.requestFullscreen?.();else document.exitFullscreen?.()};
+function updateSkyCamera(){let earthA=progress*30*DEG+Math.PI;let ep=new THREE.Vector3(OR*Math.cos(earthA),0,OR*Math.sin(earthA));let a=tracking?progress*30*DEG:lockedYaw;let elevation=tracking?0:lockedPitch;let direction=new THREE.Vector3(Math.cos(elevation)*Math.cos(a),Math.sin(elevation),Math.cos(elevation)*Math.sin(a));camera.position.copy(ep);camera.up.set(0,1,0);camera.lookAt(ep.clone().add(direction))}
+let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(mode!=='sky')return;dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(!dragging||mode!=='sky')return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;if(tracking)setTracking(false);lockedYaw-=dx*.004;lockedPitch=Math.max(-1.33,Math.min(1.33,lockedPitch+dy*.0035))});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();setProgress(progress+1/3);setPlaying(false)}else if(e.key==='ArrowLeft'){e.preventDefault();setProgress(progress-1/3);setPlaying(false)}else if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();setPlaying(!playing)}});
+function resize(){let w=canvasRoot.clientWidth,h=canvasRoot.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);frameLayout()}window.addEventListener('resize',resize);
+function tick(now){requestAnimationFrame(tick);let delta=Math.min((now-lastTime)/1000,.08);lastTime=now;if(playing)setProgress(progress+delta*(12/36));if(mode==='orbit'){controls.update()}else{updateSkyCamera()}sunCore.rotation.y+=delta*.015;renderer.render(scene,camera)}
+// Telegram Mini App integration; skipped when opened in an ordinary browser.
+const tg=window.Telegram?.WebApp;
+if(tg&&tg.platform!=='unknown'){
+  const v=x=>tg.isVersionAtLeast(x);
+  tg.ready();tg.expand();
+  if(v('7.7'))tg.disableVerticalSwipes(); // dragging the globe must not swipe-close the app
+  if(v('6.1')){tg.setHeaderColor('#070d15');tg.setBackgroundColor('#060c14')}
+  if(v('7.10'))tg.setBottomBarColor('#060c14');
+  const haptic=select=>{if(v('6.1'))select?tg.HapticFeedback.selectionChanged():tg.HapticFeedback.impactOccurred('light')};
+  monthButtons.forEach(b=>b.addEventListener('click',()=>haptic(true)));
+  ['orbitMode','earthMode','guideBtn','play','trackBtn','fixedBtn'].forEach(id=>$(id).addEventListener('click',()=>haptic(false)));
+  // Telegram's native back button leaves the "From Earth" view
+  if(v('6.1')){tg.BackButton.onClick(()=>setMode('orbit'));tgSync=()=>mode==='sky'?tg.BackButton.show():tg.BackButton.hide()}
+  if(v('8.0')){const label=()=>$('fullBtn').textContent=tg.isFullscreen?'Exit full':'Full screen';$('fullBtn').onclick=()=>tg.isFullscreen?tg.exitFullscreen():tg.requestFullscreen();tg.onEvent('fullscreenChanged',label)}
+  else $('fullBtn').style.display='none';
+  tg.onEvent('viewportChanged',resize);
+}
+setProgress(0);orbitFrame.visible=true;earthSkyFrame.visible=false;resize();requestAnimationFrame(tick);$('loading').classList.add('hide');
+</script>
+</body></html>
