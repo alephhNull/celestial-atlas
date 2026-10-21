@@ -38,3 +38,14 @@ automatically. To preview locally: `npm install && npm run build`, then serve `s
 - "Full screen" uses Telegram's fullscreen mode (Bot API 8.0+).
 
 Opened in a normal browser, the page behaves exactly like the original.
+
+## Credits
+
+- Constellation illustrations: [Stellarium](https://stellarium.org) "modern" sky culture, Free Art License
+  (files in `site/art/`, converted to WebP).
+- Constellation lines and anchor stars: Stellarium "modern" sky culture, CC BY-SA 4.0.
+- Star coordinates and magnitudes: [d3-celestial](https://github.com/ofrohn/d3-celestial) catalog, BSD-3-Clause.
+
+`src/sky-data.js` is generated from those sources. The whole real sky is drawn turned back by about 27°
+(roughly the precession since the zodiac signs were defined) so each zodiac figure sits in its sign's
+30° sector; shapes and neighbouring constellations are unchanged.
