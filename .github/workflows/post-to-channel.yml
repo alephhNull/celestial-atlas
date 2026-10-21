@@ -31,7 +31,7 @@ jobs:
           CAPTION: ${{ inputs.caption }}
           BUTTON: ${{ inputs.button }}
           PHOTO: https://alephhnull.github.io/celestial-atlas/preview.jpg
-          APP_LINK: https://t.me/celestial3datlasbot?startapp
+          APP_LINK: https://t.me/celestial3datlasbot/atlas
         run: |
           if [ -z "$BOT_TOKEN" ]; then echo "Add the BOT_TOKEN repository secret first."; exit 1; fi
           jq -n --arg chat "$CHANNEL" --arg cap "$CAPTION" --arg photo "$PHOTO" --arg text "$BUTTON" --arg url "$APP_LINK" \
