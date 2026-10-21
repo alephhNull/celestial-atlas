@@ -37,15 +37,13 @@
 #scrubber{display:block;width:100%;margin:0}
 .months{display:grid;grid-template-columns:repeat(12,1fr);margin-top:4px}
 .month{border:0;background:transparent;padding:4px 0 2px;color:#6f8493;font-size:9px;font-weight:700;letter-spacing:.05em;text-align:center;transition:color .2s}.month:hover{color:#c9d3d9}.month.active{color:#ecc98d}
-.fineprint{position:absolute;bottom:4px;left:0;right:0;z-index:2;pointer-events:none;text-align:center;font-size:8px;color:#5f707c;letter-spacing:.05em}
 @media(max-width:860px){#legend{left:16px;bottom:96px;gap:7px;flex-direction:column;align-items:flex-start}#skyTools{right:12px;bottom:96px}#hint{display:none}}
 @media(max-width:570px){#bottom{bottom:18px;gap:10px;padding:8px 10px 6px 8px;border-radius:14px}.play{width:36px;height:36px}.timeRead{font-size:10px}.month{font-size:8px;letter-spacing:0}.legendItem{font-size:8px}.swatch{width:17px}.skyBtn{padding:8px;font-size:8px}}
 /* Telegram Mini App: fit Telegram's viewport and keep UI clear of its header/safe areas */
 :root{--safe-top:calc(var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));--safe-bottom:calc(var(--tg-safe-area-inset-bottom,0px) + var(--tg-content-safe-area-inset-bottom,0px))}
 #atlas{height:var(--tg-viewport-stable-height,100dvh)}
 .topControls{margin-top:var(--safe-top)}
-#legend,#skyTools,#hint,#bottom,.fineprint{margin-bottom:var(--safe-bottom)}
-body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#legend,#skyTools,#hint,#bottom,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 </style>
 <script async id="tgSdk" src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -61,7 +59,6 @@ body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-
   <div id="skyTools" class="ui" role="group" aria-label="Earth sky camera"><button id="trackBtn" class="skyBtn active">Follow Sun</button><button id="fixedBtn" class="skyBtn">Fix sky</button></div>
   <div id="hint"> <strong>Drag</strong> to rotate · <strong>Scroll</strong> to zoom · Select any month</div>
   <section id="bottom" aria-label="Move through the solar year"><button id="play" class="play" title="Play or pause the year" aria-label="Play animation">▶</button><div class="track"><div id="timeRead" class="timeRead" aria-live="polite"></div><input id="scrubber" type="range" min="0" max="11.999" step="0.005" value="0" aria-label="Solar year position"/><div id="months" class="months"></div></div></section>
-  <div class="fineprint">Conceptual scale · sky turned 27° so each zodiac figure sits in its sign · art: Stellarium</div>
 </main>
 <script type="module" src="atlas.js"></script>
 </body></html>
