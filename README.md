@@ -10,6 +10,18 @@ Hosted for free on GitHub Pages; no bot server needed.
 3. The workflow in `.github/workflows/pages.yml` deploys `site/` on every push.
    Your URL will be `https://<your-username>.github.io/celestial-atlas/`.
 
+## 3. Post a button in your channel
+
+Subscribers can open the app straight from a channel post, without chatting with the bot.
+
+1. In @BotFather: `/mybots` → your bot → **Bot Settings → Configure Mini App → Enable Mini App**, URL
+   `https://alephhnull.github.io/celestial-atlas/`. This makes `t.me/celestial3datlasbot?startapp` open the app.
+2. Add the bot to your channel as an admin with permission to post messages.
+3. In this repo: **Settings → Secrets and variables → Actions → New repository secret**, name `BOT_TOKEN`,
+   value = your bot token from @BotFather.
+4. **Actions → "Post Atlas button to a channel" → Run workflow**, enter your channel (e.g. `@mychannel`).
+   It posts the preview picture with an **Open** button. Run it again any time for a new post.
+
 ## Editing the app
 
 - Page layout and styles: `site/index.html`
