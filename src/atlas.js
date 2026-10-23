@@ -152,6 +152,33 @@ const highlightOrbit=line(sectorArc(SR,(0)*DEG,(30)*DEG,80),0xffdc9e,.97);orbitF
 const highlightSky=line(sectorArc(FAR_R,0,30*DEG,60),0xffd59a,.9);earthSkyFrame.add(highlightSky);
 function updateLine(ln,a,b){let attr=ln.geometry.attributes.position;attr.setXYZ(0,a.x,a.y,a.z);attr.setXYZ(1,b.x,b.y,b.z);attr.needsUpdate=true;ln.geometry.computeBoundingSphere();if(ln.material.isLineDashedMaterial)ln.computeLineDistances()}
 function updateArc(ln,r,startAngle,span,count){let a=ln.geometry.attributes.position;for(let i=0;i<=count;i++){let p=vecAt(r,startAngle+i/count*span);a.setXYZ(i,p.x,p.y,p.z)}a.needsUpdate=true;ln.geometry.computeBoundingSphere()}
+// --- Planets: circular orbits on a compressed scale with real periods (years), starting from their
+// mean heliocentric longitudes at the 2026 March equinox (progress 0, when Earth sits at 180°).
+let yearCount=0;
+function planetTexture(seed,draw){let c=document.createElement('canvas');c.width=512;c.height=256;let x=c.getContext('2d');draw(x,deterministic(seed));let t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+function banded(x,rng,cols,streak){let g=x.createLinearGradient(0,0,0,256);cols.forEach((c,i)=>g.addColorStop(i/(cols.length-1),c));x.fillStyle=g;x.fillRect(0,0,512,256);
+for(let i=0;i<320;i++){let y=rng()*256;x.fillStyle=rng()<.5?`rgba(255,244,226,${.04+rng()*.08})`:`rgba(${streak},${.05+rng()*.09})`;x.beginPath();x.ellipse(rng()*512,y,30+rng()*170,.8+rng()*3,0,0,TAU);x.fill()}}
+const PLANETS=[
+{name:'Mercury',r:2.1,period:.2408,L0:195.1,size:.15,glow:'200,196,188',tex:planetTexture(11,(x,rng)=>{x.fillStyle='#8f8a84';x.fillRect(0,0,512,256);for(let i=0;i<260;i++){let r=1+rng()**2*9;x.fillStyle=rng()<.6?'rgba(60,56,52,.35)':'rgba(205,200,192,.3)';x.beginPath();x.arc(rng()*512,rng()*256,r,0,TAU);x.fill()}})},
+{name:'Venus',r:3.45,period:.6152,L0:41.5,size:.27,glow:'255,232,180',tex:planetTexture(12,(x,rng)=>banded(x,rng,['#ead5a4','#dcc189','#f2e2b6','#d2b27a','#ecd8aa','#dcc28c'],'190,150,90'))},
+{name:'Mars',r:6.75,period:1.8809,L0:332.6,size:.2,glow:'255,140,100',tex:planetTexture(13,(x,rng)=>{x.fillStyle='#b4572f';x.fillRect(0,0,512,256);for(let i=0;i<90;i++){x.fillStyle=`rgba(${rng()<.6?'80,32,20':'215,130,80'},${.18+rng()*.2})`;x.beginPath();x.ellipse(rng()*512,40+rng()*176,10+rng()*60,5+rng()*22,rng()*3,0,TAU);x.fill()}x.fillStyle='rgba(245,240,235,.9)';x.fillRect(0,0,512,14);x.fillRect(0,244,512,12)})},
+{name:'Jupiter',r:8.8,period:11.862,L0:110.1,size:.6,glow:'240,210,170',tex:planetTexture(14,(x,rng)=>{banded(x,rng,['#e6d6ba','#c49a6c','#f0e4cc','#a8774f','#ead8b4','#b98b5e','#f2e8d2','#c89e73','#e2cfb2'],'120,80,50');x.fillStyle='rgba(185,88,58,.85)';x.beginPath();x.ellipse(310,168,30,13,0,0,TAU);x.fill()})},
+{name:'Saturn',r:10.5,period:29.457,L0:10.7,size:.48,glow:'240,222,170',ring:true,tex:planetTexture(15,(x,rng)=>banded(x,rng,['#eadbb0','#d8c08b','#f0e4c0','#ccb07a','#e7d5a6','#d6bd88'],'150,120,70'))}];
+PLANETS.forEach(p=>{
+  p.body=new THREE.Group();orbitFrame.add(p.body);
+  p.mesh=new THREE.Mesh(new THREE.SphereGeometry(p.size,40,28),new THREE.MeshPhongMaterial({map:p.tex,shininess:6}));p.body.add(p.mesh);
+  p.body.add(halo(glowCanvas(`rgba(${p.glow},.55)`,`rgba(${p.glow},.12)`,`rgba(${p.glow},0)`),p.size*5,.55));
+  if(p.ring){let a=p.size*1.3,b=p.size*2.35;let ring=new THREE.Mesh(new THREE.RingGeometry(a,b,128,1),new THREE.ShaderMaterial({uniforms:{uIn:{value:a},uOut:{value:b}},vertexShader:`varying float vR;void main(){vR=length(position.xy);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform float uIn,uOut;varying float vR;void main(){float t=(vR-uIn)/(uOut-uIn);float b=.6+.22*sin(t*41.)+.18*sin(t*97.);float gap=1.-.85*smoothstep(.6,.62,t)*smoothstep(.69,.67,t);gl_FragColor=vec4(vec3(.93,.85,.67)*(.75+.35*b),smoothstep(0.,.05,t)*smoothstep(1.,.92,t)*gap*b*.8);}`,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2+26.7*DEG;p.body.add(ring)}
+  p.label=spriteText(p.name.toUpperCase(),{serif:false,size:84,width:2.6,color:'#dfe5ea',opacity:.85});p.label.position.y=p.size+.38;p.body.add(p.label);
+  orbitFrame.add(ring(p.r,0x8fb0c4,.13));
+  // its glowing point in the "From Earth" sky
+  p.skyDot=halo(glowCanvas('rgba(255,255,255,1)',`rgba(${p.glow},.45)`,`rgba(${p.glow},0)`),8+p.size*9,1);earthSkyFrame.add(p.skyDot);
+  p.skyLabel=spriteText(p.name.toUpperCase(),{serif:false,size:84,width:19,color:`rgb(${p.glow})`,opacity:.9});earthSkyFrame.add(p.skyLabel)});
+const _toPlanet=new THREE.Vector3();
+function updatePlanets(earthPos){let years=yearCount+progress/12;PLANETS.forEach(p=>{let L=(p.L0+360*years/p.period)*DEG;p.body.position.set(p.r*Math.cos(L),0,p.r*Math.sin(L));
+  let a=Math.atan2(_toPlanet.subVectors(p.body.position,earthPos).z,_toPlanet.x);p.skyDot.position.copy(vecAt(FAR_R-3,a));p.skyLabel.position.copy(vecAt(FAR_R-3,a,-3.4*DEG))})}
 // --- Ambient effects: corona, atmosphere, ecliptic shimmer, drift and shooting stars ---
 // A slowly shifting corona of rays around the Sun, billboarded toward the camera every frame.
 const coronaFrag=`uniform float uTime;varying vec2 vUv;
@@ -182,7 +209,7 @@ let g=mctx.createLinearGradient(hx,hy,tx,ty);g.addColorStop(0,`rgba(255,246,225,
 mctx.strokeStyle=g;mctx.lineWidth=1.6;mctx.lineCap='round';mctx.beginPath();mctx.moveTo(hx,hy);mctx.lineTo(tx,ty);mctx.stroke();
 let r=mctx.createRadialGradient(hx,hy,0,hx,hy,6);r.addColorStop(0,`rgba(255,250,235,${a})`);r.addColorStop(1,'rgba(255,240,210,0)');mctx.fillStyle=r;mctx.beginPath();mctx.arc(hx,hy,6,0,TAU);mctx.fill();return true})}
 const _sunWorld=new THREE.Vector3();
-function updateEffects(dt){orbitCorona.visible=mode==='orbit';skyCorona.visible=mode==='sky';
+function updateEffects(dt){PLANETS.forEach(p=>p.mesh.rotation.y+=dt*.25);orbitCorona.visible=mode==='orbit';skyCorona.visible=mode==='sky';
 orbitCorona.quaternion.copy(camera.quaternion);skyCorona.quaternion.copy(camera.quaternion);farSunDisk.getWorldPosition(_sunWorld);skyCorona.position.copy(_sunWorld);
 drawMeteors(dt)}
 const eclipticLatitude=0;
@@ -191,10 +218,10 @@ function frameLayout(){let w=canvasRoot.clientWidth,h=canvasRoot.clientHeight;le
 frameLayout();
 const monthButtons=[];months.forEach((m,i)=>{let b=document.createElement('button');b.className='month';b.textContent=m;b.setAttribute('aria-label',monthNames[i]);b.onclick=()=>{setProgress(i);setPlaying(false)};$('months').append(b);monthButtons.push(b)});
 function getDate(p){let month=Math.floor(p),f=p-month,day=20+Math.round(f*30.44);return {month,day:day>30?day-30:day,next:day>30};}
-function setProgress(p){progress=(p%12+12)%12;let lam=progress*30*DEG,earthAngle=lam+Math.PI,earthPos=new THREE.Vector3(OR*Math.cos(earthAngle),0,OR*Math.sin(earthAngle)),skyPoint=vecAt(SR,lam),farPoint=vecAt(FAR_R,lam);earth.position.copy(earthPos);earthLabel.position.copy(earthPos).add(new THREE.Vector3(0,.66,0));earthMesh.rotation.y=progress*.38;
+function setProgress(p){let wraps=Math.floor(p/12);yearCount+=wraps;progress=p-wraps*12;let lam=progress*30*DEG,earthAngle=lam+Math.PI,earthPos=new THREE.Vector3(OR*Math.cos(earthAngle),0,OR*Math.sin(earthAngle)),skyPoint=vecAt(SR,lam),farPoint=vecAt(FAR_R,lam);earth.position.copy(earthPos);earthLabel.position.copy(earthPos).add(new THREE.Vector3(0,.66,0));earthMesh.rotation.y=progress*.38;
 updateLine(rayToSun,earthPos,new THREE.Vector3(0,0,0));updateLine(rayOut,new THREE.Vector3(0,0,0),skyPoint);endpointHalo.position.copy(skyPoint);endpointCore.position.copy(skyPoint);farSunMarker.position.copy(farPoint);farSunDisk.position.copy(vecAt(FAR_R-2.1,lam));farSunRim.position.copy(vecAt(FAR_R-2.25,lam));farSunLabel.position.copy(vecAt(FAR_R-1,lam,-3.4*DEG));updateArc(highlightOrbit,SR,Math.floor(progress)*30*DEG,30*DEG,80);updateArc(highlightSky,FAR_R,Math.floor(progress)*30*DEG,30*DEG,60);
 let sign=Math.floor(progress);$('scrubber').value=progress;$('scrubber').style.setProperty('--progress',(progress/12*100)+'%');monthButtons.forEach((b,i)=>b.classList.toggle('active',i===sign));let d=getDate(progress);$('timeRead').innerHTML=`${glyphSvg(sign)}${d.next?monthNames[(d.month+1)%12]:monthNames[d.month]} ${d.day}<span>· ${signs[sign]}</span>`;
-if(tracking&&mode==='sky')lockedYaw=lam;
+updatePlanets(earthPos);if(tracking&&mode==='sky')lockedYaw=lam;
 }
 function setPlaying(p){playing=p;$('play').textContent=p?'Ⅱ':'▶';$('play').setAttribute('aria-label',p?'Pause animation':'Play animation')}
 $('play').onclick=()=>setPlaying(!playing);$('scrubber').oninput=e=>{setProgress(Number(e.target.value));setPlaying(false)};
