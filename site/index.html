@@ -19,6 +19,8 @@
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 #atlas{position:relative;height:100dvh;min-height:590px;width:100%;isolation:isolate;background:radial-gradient(ellipse at 58% 38%,#0c1c2d 0%,#080f1b 39%,#050a11 80%)}
 #stage{position:absolute;inset:0;z-index:0}#stage canvas{display:block;width:100%;height:100%;outline:none}
+#stage canvas{animation:fadeIn 1.8s ease-out}@keyframes fadeIn{from{opacity:0}}
+#meteors{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none}
 #vignette{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 62% 70% at 53% 43%,transparent 18%,rgba(3,8,14,.22) 80%),linear-gradient(90deg,rgba(5,10,17,.55) 0%,transparent 40%,rgba(5,10,17,.1) 100%)}
 .ui{position:absolute;z-index:2;pointer-events:none}.ui>*{pointer-events:auto}
 
@@ -54,7 +56,7 @@
 </head>
 <body>
 <main id="atlas" aria-label="Interactive three-dimensional celestial atlas">
-  <div id="stage"></div><div id="vignette"></div>
+  <div id="stage"></div><canvas id="meteors" aria-hidden="true"></canvas><div id="vignette"></div>
   <div id="loading">ASSEMBLING THE CELESTIAL SPHERE<div class="arcMark"></div></div>
   <div class="ui topControls">
     <div class="segment" role="group" aria-label="Perspective"><button id="orbitMode" class="mode active" aria-pressed="true">Outside view</button><button id="earthMode" class="mode" aria-pressed="false">From Earth</button></div>
